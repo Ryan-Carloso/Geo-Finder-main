@@ -2,6 +2,115 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  tutorialtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    position: 'absolute',
+    top: "15%",
+    textAlign: 'center',
+
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    position: 'absolute',
+    top: "19%", // Example offset from the top
+  },
+  tutorialbody1: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    position: 'absolute',
+    top: "30%", // Example offset from the top
+  },
+
+  tutorialbody2: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    position: 'absolute',
+    top: "34%", // Example offset from the top
+  },
+  tutorialbutton1: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    position: 'absolute',
+    top: "36%", // Example offset from the top
+  },
+
+  tutorialbody3: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 5,
+    textAlign: 'center',
+    position: 'absolute',
+    top: "50%", // Example offset from the top
+  },
+
+
+
+
+  tutorialbutton2: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    position: 'absolute',
+    top: "56%", // Example offset from the top
+  },
+
+  tutorialtitle5: {
+    fontSize: 20,
+    margin: 5,
+    fontWeight: 'bold',
+    color: 'white',
+    position: 'absolute',
+    top: "10%",
+    textAlign: 'center',
+    position: 'absolute',
+    top: "75%", // Example offset from the top
+    margin: 10,
+  },
+
+ 
+
+  
+  
+  inputxt4: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  
+  optionButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 10,
+    margin: 5,
+    borderRadius: 5,
+    marginBottom: 10,
+
+  },
+  optionButtonText: {
+    fontSize: 18,
+    color: 'black',
+    fontWeight: 'bold',
+
+  },
+  footerImage: {
+    width: '100%',
+    height: 100,
+    position: 'absolute',
+    bottom: 0,
+  },
+  
   background:
   {
     flex: 1,
@@ -9,23 +118,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: "black", 
     opacity: 10,
-  },
-   
-  buttonTextback: {
-    fontSize: 15,
-    color: "white",
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  buttonback: {
-    alignItems: 'center',
-    justifyContent: 'center',    
-    borderColor: 'black',
-    borderWidth: 1,
-    padding: 10,
-    width: '100%',
-    backgroundColor: '#323232',  
   },
   markerText: {
     opacity: 100,

@@ -1,15 +1,28 @@
 // App.js
-import React, { useState, useEffect } from 'react';
-import { ImageBackground, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, View, Image, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { ImageBackground } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './homescreen';
 import { MainComponent } from './MainComponent';
-import { styles } from './Styles';  // Make sure to import styles from Styles.js
+import Catch from './catch';  // Verifique o caminho e o nome do arquivo
+import Tutorial from './tutorial';  // Verifique o caminho e o nome do arquivo
 
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <ImageBackground source={require('./assets/backft.png')} style={styles.background}>
-      <MainComponent />
+    <ImageBackground source={require('./assets/backft.png')} style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Home" component={HomeScreen} /> 
+          <Stack.Screen name="Find his/her location!" component={MainComponent} />
+          <Stack.Screen name="Enter his/her data" component={Catch} />
+          <Stack.Screen name="Tutorial, how the app works" component={Tutorial} />
+
+        </Stack.Navigator>
+      </NavigationContainer>
     </ImageBackground>
   );
 }

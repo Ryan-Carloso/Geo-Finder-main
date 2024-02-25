@@ -21,7 +21,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1B1E23"
+        "backgroundColor": "#1B1E23",
+        "notification": {
+          "channelId": "saved-values"
+        }
       },
       "package": "com.geomaps1.geomapsfinder1",
       "versionCode": 3

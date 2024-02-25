@@ -1,27 +1,28 @@
-// MainComponent.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, Image, ImageBackground } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { styles } from './Styles';  // Make sure to import styles from Styles.js
-import { AsyncStorage as Storage } from './AsyncStorage';
+import { useNavigation } from '@react-navigation/native';
+import { styles } from './Styles';
 
-export function MainComponent() {
+export const MainComponent = () => {
+  const navigation = useNavigation();
+
   const [location, setLocation] = useState(null);
   const [name, setName] = useState('');
   const [seunomename, setSeunomename] = useState('');
   const [showMap, setShowMap] = useState(false);
-  const [randomMarker, setRandomMarker] = useState(null);
+  const [userMarker, setUserMarker] = useState(null);
+  const [firebaseMarker, setFirebaseMarker] = useState(null);
   const [lastClickTime, setLastClickTime] = useState(null);
   const [loading, setLoading] = useState(false);
-
 
   useEffect(() => {
     const loadSavedData = async () => {
       try {
-        const savedData = await Storage.getItem('savedData');
+        const savedData = await AsyncStorage.getItem('savedData');
         if (savedData) {
           const { name: savedName, seunomename: savedSeunomename } = JSON.parse(savedData);
           setName(savedName);
@@ -43,59 +44,46 @@ export function MainComponent() {
       return;
     }
 
-    if (!name || !seunomename || !/^\d{8,}$/.test(name)) {
-      Alert.alert('Required fields', 'please fill in numbers only, nothing else.');
+    if (!name || !seunomename) {
+      Alert.alert('Required fields', 'Please fill in both name and number fields.');
       return;
     }
 
     try {
-      await Storage.setItem('savedData', JSON.stringify({ name, seunomename }));
+      await AsyncStorage.setItem('savedData', JSON.stringify({ name, seunomename }));
     } catch (error) {
       console.error('Erro ao salvar dados no AsyncStorage:', error);
     }
 
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      console.error('Permissão de localização negada');
-      return;
-    }
+    setLoading(true);
 
+    const firebaseDatabaseUrl = 'https://app-react-native-6b77a-default-rtdb.europe-west1.firebasedatabase.app/';
     try {
-      let userLocation = await Location.getCurrentPositionAsync({});
-      setLocation(userLocation);
+      const response = await axios.get(`${firebaseDatabaseUrl}/users.json`);
 
-      const isNearby = Math.random() < 0.5;
-      const distanceMultiplier = isNearby ? 0.02 : 0.2;
+      if (response.data) {
+        const userData = Object.values(response.data).find(user => user.name === seunomename && user.number === name);
 
-      const randomLatitude =
-        userLocation.coords.latitude + (Math.random() - 0.5) * distanceMultiplier;
-      const randomLongitude =
-        userLocation.coords.longitude + (Math.random() - 0.5) * distanceMultiplier;
+        if (userData) {
+          const { latitude, longitude, name, number } = userData;
 
-      setRandomMarker({
-        latitude: randomLatitude,
-        longitude: randomLongitude,
-        name: name || 'Aleatório',
-        seunomename: seunomename || 'Aleatório',
-      });
+          setFirebaseMarker({
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            name: name || 'Aleatório',
+            seunomename: number || 'Aleatório',
+          });
 
-      setShowMap(true);
-      setLastClickTime(currentTime);
-
-      setLoading(true);
-
-      const firebaseDatabaseUrl = 'https://app-react-native-6b77a-default-rtdb.europe-west1.firebasedatabase.app/';
-      const locationData = {
-        latitude: randomLatitude,
-        longitude: randomLongitude,
-        name: seunomename,
-        number: name,
-      };
-
-      await axios.post(`${firebaseDatabaseUrl}/users/${name}.json`, locationData);
-
+          setShowMap(true);
+          setLastClickTime(currentTime);
+        } else {
+          Alert.alert('User not found', 'No location data found for the specified user.');
+        }
+      } else {
+        Alert.alert('No Data', 'No location data found in the Firebase database.');
+      }
     } catch (error) {
-      console.error('Error handling location:', error);
+      console.error('Error fetching location data from Firebase:', error);
     } finally {
       setLoading(false);
     }
@@ -105,95 +93,117 @@ export function MainComponent() {
     setShowMap(false);
   };
 
-  return (
-    <View style={styles.container}>
-      {!showMap ? (
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputxt}>Enter his/her number you want to locate:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Place the number here"
-            placeholderTextColor="#000000"
-            value={name}
-            onChangeText={(text) => setName(text)}
-            keyboardType="numeric"
-            maxLength={17}
-          />
-          <Text style={styles.inputxt1}>(ex: 1 962 248 289)</Text>
+  const getUserLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Permissão de localização negada');
+        return;
+      }
 
-          <Text style={styles.inputxt}>Enter His/Her name:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter the name here"
-            placeholderTextColor="#000000"
-            value={seunomename}
-            onChangeText={(text) => setSeunomename(text)}
-            keyboardType="default"
-            maxLength={16}
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleShowMap}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.buttonText}>Finder now!</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <SafeAreaView style={styles.mapContainer}>
-          <TouchableOpacity
-            style={styles.buttonback}
-            onPress={handleBack}>
-            <Text style={styles.buttonTextback}>Back</Text>
-          </TouchableOpacity>
-          {location && (
+      let userLocation = await Location.getCurrentPositionAsync({});
+      setLocation(userLocation);
+
+      setUserMarker({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      });
+    } catch (error) {
+      console.error('Error getting user location:', error);
+    }
+  };
+
+  useEffect(() => {
+    getUserLocation();
+  }, []); // Run only once on component mount
+
+  return (
+    <ImageBackground source={require('./assets/backft.png')} style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {!showMap ? (
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputxt}>Enter his/her number you want to locate:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Place the number here"
+              placeholderTextColor="#000000"
+              value={name}
+              onChangeText={(text) => setName(text)}
+              keyboardType="numeric"
+              maxLength={17}
+            />
+            <Text style={styles.inputxt1}>(ex: 1 962 248 289)</Text>
+
+            <Text style={styles.inputxt}>Enter His/Her name:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter the name here"
+              placeholderTextColor="#000000"
+              value={seunomename}
+              onChangeText={(text) => setSeunomename(text)}
+              keyboardType="default"
+              maxLength={16}
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleShowMap}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.buttonText}>Finder now!</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <SafeAreaView style={styles.mapContainer}>
+
             <MapView
               style={styles.map}
               initialRegion={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
+                latitude: userMarker ? userMarker.latitude : 0,
+                longitude: userMarker ? userMarker.longitude : 0,
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
               }}
             >
-              <Marker
-                coordinate={{
-                  latitude: location.coords.latitude,
-                  longitude: location.coords.longitude,
-                }}
-                title={`${seunomename}`}
-                description={`You are here!!`}
-              >
-                <View style={styles.markeryou}>
-                  <Text style={styles.markerText}>You</Text>
-                </View>
-              </Marker>
-              {randomMarker && (
+              {userMarker && (
                 <Marker
                   coordinate={{
-                    latitude: randomMarker.latitude,
-                    longitude: randomMarker.longitude,
+                    latitude: userMarker.latitude,
+                    longitude: userMarker.longitude,
                   }}
-                  title={`Maker of ${randomMarker.name}`}
-                  description={`his/her location`}
+                  title={`Your Location`}
+                  description={`You are here!!`}
+                >
+                  <View style={styles.markeryou}>
+                    <Text style={styles.markerText}>You</Text>
+                  </View>
+                </Marker>
+              )}
+              {firebaseMarker && (
+                <Marker
+                  coordinate={{
+                    latitude: firebaseMarker.latitude,
+                    longitude: firebaseMarker.longitude,
+                  }}
+                  title={`Location of ${firebaseMarker.name}`}
+                  description={`Name: ${firebaseMarker.seunomename}, Number: ${firebaseMarker.number}`}
                 >
                   <View style={styles.marker}>
-                    <Text style={styles.markerText}>{seunomename}</Text>
+                    <Text style={styles.markerText}>{firebaseMarker.seunomename}</Text>
                   </View>
                 </Marker>
               )}
             </MapView>
-          )}
-        </SafeAreaView>
-      )}
-      <Image
-        source={require('./assets/fundoft.png')}
-        style={styles.footerImage}
-      />
-    </View>
+          </SafeAreaView>
+        )}
+        <Image
+          source={require('./assets/fundoft.png')}
+          style={styles.footerImage}
+        />
+      </View>
+    </ImageBackground>
   );
-}
+};
